@@ -12,6 +12,10 @@ namespace GalaxyExpress.DAL.Data.Configurations
 
             builder.HasKey(u => u.Id);
 
+            builder.Property(u => u.Sex)
+                .HasConversion<string>()
+                .HasDefaultValue(Gender.NotSelected);
+
             builder
                 .Property(u => u.DateCreated)
                 .HasDefaultValueSql("GETUTCDATE()");
@@ -20,9 +24,11 @@ namespace GalaxyExpress.DAL.Data.Configurations
                 .Property(u => u.Login)
                 .HasColumnType("NVARCHAR(100)")
                 .IsRequired();
+
             builder
                 .HasIndex(u => u.Login)
                 .IsUnique();
+
             builder
                 .Property(u => u.FirstName)
                 .HasColumnType("NVARCHAR(100)")

@@ -15,6 +15,8 @@ public interface IUnitOfWork
     IEmailRepository Emails { get; }
     IParcelMachineRepository ParcelMachines { get; }
     IPostBranchRepository PostBranches { get; }
+    IPhoneNumberRepository PhoneNumbers { get; }
+
 
     UserManager<User> _userManager { get; set; }
     RoleManager<IdentityRole<Guid>> _roleManager { get; set; }
@@ -28,23 +30,21 @@ public class UnitOfWork : IUnitOfWork
     public IEmailRepository Emails { get; set; }
     public IParcelMachineRepository ParcelMachines { get; set; }
     public IPostBranchRepository PostBranches { get; set; }
+    public IPhoneNumberRepository PhoneNumbers { get; set; }
 
     public UserManager<User> _userManager { get; set; }
     public RoleManager<IdentityRole<Guid>> _roleManager { get; set; }
 
 
-    public UnitOfWork(
-        GalaxyExpressDbContext dbContext, 
-        IEmailRepository emails,
-        UserManager<User> userManager, 
-        RoleManager<IdentityRole<Guid>> roleManager, 
-        IParcelMachineRepository parcelMachines, 
-        IPostBranchRepository postBranches)
+    public UnitOfWork(GalaxyExpressDbContext dbContext, IEmailRepository emails, UserManager<User> userManager, 
+        RoleManager<IdentityRole<Guid>> roleManager, IParcelMachineRepository parcelMachines, IPostBranchRepository postBranches, 
+        IPhoneNumberRepository phoneNumbers)
     {
         _dbContext = dbContext;
         Emails = emails;
         ParcelMachines = parcelMachines;
         PostBranches = postBranches;
+        PhoneNumbers = phoneNumbers;
 
         _userManager = userManager;
         _roleManager = roleManager;

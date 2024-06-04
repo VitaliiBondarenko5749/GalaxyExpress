@@ -67,6 +67,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
     {
         builder.Services.AddScoped<IParcelMachineService, ParcelMachineService>();
         builder.Services.AddScoped<IPostBranchService, PostBranchService>();
+        builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
+        builder.Services.AddScoped<IPhoneNumberService, PhoneNumberService>();
     }
     #endregion
 
@@ -75,12 +78,14 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.Services.AddScoped<IEmailRepository, EmailRepository>();
         builder.Services.AddScoped<IParcelMachineRepository, ParcelMachineRepository>();
         builder.Services.AddScoped<IPostBranchRepository, PostBranchRepository>();
+        builder.Services.AddScoped<IPhoneNumberRepository, PhoneNumberRepository>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     }
     #endregion
 }
 #endregion
 
+builder.Services.AddHttpClient();
 
 builder.Services.AddControllers();
 

@@ -26,10 +26,6 @@ namespace GalaxyExpress.DAL.Data.Configurations
                 .Property(e => e.EmailAddress)
                 .HasColumnType("NVARCHAR(256)")
                 .IsRequired();
-            builder
-                .HasIndex(e => e.EmailAddress)
-                .IsUnique();
-
 
             builder // many to one - Users to Emails
                 .HasOne(e => e.User)

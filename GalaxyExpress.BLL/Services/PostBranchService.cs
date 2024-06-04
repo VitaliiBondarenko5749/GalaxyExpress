@@ -50,7 +50,7 @@ public class PostBranchService : IPostBranchService
 
         return new ServerResponse
         {
-            Message = $"PostBranch with id: {id} has been removed successfully!",
+            Message = $"Відділення з id: {id} було видалено успішно!",
             IsSuccess = true
         };
     }
@@ -62,10 +62,10 @@ public class PostBranchService : IPostBranchService
 
         if (postBranch is null)
         {
-            return new ServerResponse { Message = $"PostBranch with the given parameters does not exist!", IsSuccess = false };
+            return new ServerResponse { Message = "Відділення з даними параметрами не існує!", IsSuccess = false };
         }
 
-        return new ServerResponse { Message = $"PostBranch with the given parameters already exists!", IsSuccess = true };
+        return new ServerResponse { Message = "Відділення з даними параметрами існує!", IsSuccess = true };
     }
 
     public async Task<ServerResponse> AddAsync(AddPostBranchDTO addPostBranchDTO)
@@ -79,7 +79,7 @@ public class PostBranchService : IPostBranchService
 
             return new ServerResponse
             {
-                Message = "Something went wrong... all errors are in [Errors] list!",
+                Message = "Щось пішло не так... всі помилки в списку \"Errors\"!",
                 IsSuccess = false,
                 Errors = errors.Split('~')
             };
@@ -93,7 +93,7 @@ public class PostBranchService : IPostBranchService
 
         if (postBranch is not null)
         {
-            return new ServerResponse { Message = $"PostBranch with the given parameters already exists!", IsSuccess = false };
+            return new ServerResponse { Message = "Відділення з даними параметрами існує!", IsSuccess = false };
         }
 
         postBranch = new()
@@ -109,7 +109,7 @@ public class PostBranchService : IPostBranchService
 
         await unitOfWork.SaveChangesAsync();
 
-        return new ServerResponse { Message = "PostBranch has been added in the database!", IsSuccess = true };
+        return new ServerResponse { Message = "Відділення було додане успішно!", IsSuccess = true };
     }
 
     private static MapperConfiguration MapperConfiguration

@@ -6,6 +6,7 @@ namespace GalaxyExpress.DAL.Repositories;
 
 public interface IEmailRepository : IGenericRepository<Email, Guid>
 {
+    Task<Email?> CheckUserEmailExistence(string email, Guid userId);
 }
 public class EmailRepository : GenericRepository<Email>, IEmailRepository
 {
@@ -28,5 +29,11 @@ public class EmailRepository : GenericRepository<Email>, IEmailRepository
             .AsNoTracking()
             .Include(e => e.User)
             .FirstOrDefaultAsync(e => e.EmailId == id);
+    }
+
+    public async Task<Email?> CheckUserEmailExistence(string email, Guid userId)
+    {
+        return await dbContext.Emails.AsNoTracking()
+            .SingleOrDefaultAsync(e => e.EmailAddress.Equals(email) && e.UserId.Equals(userId)); 
     }
 }

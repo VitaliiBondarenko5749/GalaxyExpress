@@ -21,15 +21,10 @@ namespace GalaxyExpress.DAL.Data.Configurations
                 .Property(pn => pn.DateCreated)
                 .HasDefaultValueSql("GETUTCDATE()");
 
-
             builder
                 .Property(pn => pn.Number)
                 .HasColumnType("NVARCHAR(20)")
                 .IsRequired();
-            builder
-                .HasIndex(pn => pn.Number)
-                .IsUnique();
-
 
             builder // many to one - Users to PhoneNumbers
                 .HasOne(pn => pn.User)

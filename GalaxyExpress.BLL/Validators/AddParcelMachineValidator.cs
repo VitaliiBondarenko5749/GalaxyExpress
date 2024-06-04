@@ -7,22 +7,22 @@ public class AddParcelMachineValidator : AbstractValidator<AddParcelMachineDTO>
     public AddParcelMachineValidator()
     {
         RuleFor(x => x.ParcelMachineNumber)
-            .NotEmpty().WithMessage("ParcelMachineNumber can not be empty!");
+            .NotEmpty().WithMessage("Номер поштомату не може бути пустим!");
 
         // TODO: Add a regular expression.
         RuleFor(x => x.GlobalAddress)
-            .NotNull().WithMessage("GlobalAddress can not be nullable!")
-            .NotEmpty().WithMessage("GlobalAddress can not be empty!");
+            .NotNull().WithMessage("Глобальна адреса не може бути типу \"nullable\"!")
+            .NotEmpty().WithMessage("Глобальна адреса не може бути пустим значенням!");
 
         // TODO: Add a regular expression.
         RuleFor(x => x.LocalAddress)
-            .NotNull().WithMessage("LocalAddress can not be nullable!")
-            .NotEmpty().WithMessage("LocalAddress can not be empty!");
+            .NotNull().WithMessage("Локальна адреса не може бути типу \"nullable\"!")
+            .NotEmpty().WithMessage("Локальна адреса не може бути пустим значенням!");
 
         RuleFor(x => x.X)
-            .NotEmpty().WithMessage("X-coordinate can not be empty!");
+            .NotEmpty().WithMessage("X-координта не може бути пустою!");
 
         RuleFor(x => x.Y)
-            .NotEmpty().WithMessage("Y-coordinate can not be empty!");
+            .NotEmpty().WithMessage("Y-координата не може бути пустою!");
     }
 }

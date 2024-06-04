@@ -48,7 +48,7 @@ public class ParcelMachineService : IParcelMachineService
 
         await unitOfWork.SaveChangesAsync();
 
-        return new ServerResponse { Message = $"ParcelMachine with id: {id} has been removed successfully!", IsSuccess = true };
+        return new ServerResponse { Message = $"Поштомат з id: {id} був видалений успішно!", IsSuccess = true };
     }
 
     public async Task<ServerResponse> CheckExistenceByParametersAsync(int parcelMachineNumber, string globalAddress, string localAddress)
@@ -58,10 +58,10 @@ public class ParcelMachineService : IParcelMachineService
 
         if (parcelMachine is null)
         {
-            return new ServerResponse { Message = $"ParcelMachine with the given parameters does not exist!", IsSuccess = false };
+            return new ServerResponse { Message = "Поштомат з даними параметрами не існує!", IsSuccess = false };
         }
 
-        return new ServerResponse { Message = $"ParcelMachine with the given parameters already exists!", IsSuccess = true };
+        return new ServerResponse { Message = "Поштомат з даними параметрами існує!", IsSuccess = true };
     }
 
     public async Task<ServerResponse> AddAsync(AddParcelMachineDTO addParcelMachineDTO)
@@ -75,7 +75,7 @@ public class ParcelMachineService : IParcelMachineService
 
             return new ServerResponse
             {
-                Message = "Something went wrong... all errors are in [Errors] list!",
+                Message = "Щось пішло не так... всі помилки в списку \"Errors\"!",
                 IsSuccess = false,
                 Errors = errors.Split('~')
             };
@@ -89,7 +89,7 @@ public class ParcelMachineService : IParcelMachineService
 
         if (parcelMachine is not null)
         {
-            return new ServerResponse { Message = $"ParcelMachine with the given parameters already exists!", IsSuccess = false };
+            return new ServerResponse { Message = "Поштомат з даними параметрами існує!", IsSuccess = false };
         }
 
         parcelMachine = new()
@@ -105,7 +105,7 @@ public class ParcelMachineService : IParcelMachineService
 
         await unitOfWork.SaveChangesAsync();
 
-        return new ServerResponse { Message = "ParcelMachine has been added in the database!", IsSuccess = true };
+        return new ServerResponse { Message = "Поштомат був доданий успішно!", IsSuccess = true };
     }
 
     private static MapperConfiguration MapperConfiguration
