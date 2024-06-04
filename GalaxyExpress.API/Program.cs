@@ -100,6 +100,15 @@ builder.Services.AddSwaggerGen(option =>
     option.IncludeXmlComments(xmlPath);
 });
 
+// Add CORS React application can have access to the server.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy",
+           builder => builder.WithOrigins("http://localhost:3000")
+           .AllowAnyMethod()
+           .AllowAnyHeader());
+});
+
 
 //DataGenerator.InitBogusData(); // seeding db
 WebApplication app = builder.Build();
@@ -123,6 +132,8 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseCors("CorsPolicy");
+
 app.MapControllers();
 
- await app.RunAsync();
+await app.RunAsync();
