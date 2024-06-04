@@ -50,10 +50,12 @@ public class UserService : IUserService
             Login = dto.Login,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
+            FatherName = dto.FatherName,
             Birthday = null,
             Sex = Gender.NotSelected,
             ImageDirectory = null,
-            BonusAccount = 20M
+            BonusAccount = 20M,
+            UserName = Guid.NewGuid().ToString(),
         };
 
         IdentityResult identityResult = await unitOfWork._userManager.CreateAsync(user, dto.Password);

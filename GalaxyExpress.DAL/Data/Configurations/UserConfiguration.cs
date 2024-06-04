@@ -66,6 +66,14 @@ namespace GalaxyExpress.DAL.Data.Configurations
             builder.Ignore(u => u.UserName);
             builder.Ignore(u => u.NormalizedUserName);
 
+            builder.Property(u => u.UserName)
+                .IsRequired(false)
+                .HasDefaultValue("None");
+
+            builder.Property(u => u.NormalizedUserName)
+                .IsRequired(false)
+                .HasDefaultValue("NONE");
+
             builder.Ignore(u => u.Email);
             builder.Ignore(u => u.NormalizedEmail);
             builder.Ignore(u => u.EmailConfirmed);

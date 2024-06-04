@@ -94,6 +94,11 @@ public class UserController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Check login existence
+    /// </summary>
+    /// <param name="login"></param>
+    /// <returns>Server Response</returns>
     [HttpGet("CheckLoginExistence/{login}")]
     public async Task<ActionResult<ServerResponse>> CheckLoginExistenceAsync(string login)
     {

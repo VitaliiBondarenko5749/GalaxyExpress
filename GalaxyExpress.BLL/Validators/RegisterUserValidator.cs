@@ -10,12 +10,12 @@ public class RegisterUserValidator : AbstractValidator<RegisterUserDTO>
         RuleFor(x => x.PhoneNumber)
             .NotEmpty().WithMessage("Номер телефону не може бути пустим!")
             .NotNull().WithMessage("Номер телефону не може бути типу \"nullable\"!")
-            .Matches("^\\+380[-\\s]?\\d{2}[-\\s]?\\d{3}[-\\s]?\\d{2}[-\\s]?\\d{2}$\r\n")
+            .Matches("\\+380\\d{9}")
             .WithMessage("Введений номер телефону не є українським!");
 
         RuleFor(x => x.Password)
             .MinimumLength(8).WithMessage("Пароль повинен містити хоча б 8 символів!")
-            .Matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$")
+            .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,30}$")
             .WithMessage("Пароль повинен містити хоча б одну цифру, один спеціальний символ, латинські сиволи верхнього та нижнього реєстру!")
             .Equal(x => x.ConfirmPassword).WithMessage("Password та Confirm Password не є ідентичні!");
 
