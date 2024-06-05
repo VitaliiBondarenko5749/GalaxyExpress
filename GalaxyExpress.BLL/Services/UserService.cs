@@ -21,6 +21,7 @@ public interface IUserService
     Task<ServerResponse> ConfirmEmailAsync(string token);
     Task<int> GetCountOfUsers();
     Task<ServerResponse> LoginAsync(LoginUserDTO dto);
+    Task<UserEmailsAndPhoneNumbersDTO> GetEmailsAndPhoneNumbersAsync(Guid userId);
 }
 
 public class UserService : IUserService
@@ -65,6 +66,7 @@ public class UserService : IUserService
             ImageDirectory = null,
             BonusAccount = 20M,
             UserName = Guid.NewGuid().ToString(),
+            ActivatedAccount = false
         };
 
         IdentityResult identityResult = await unitOfWork._userManager.CreateAsync(user, dto.Password);
@@ -96,8 +98,8 @@ public class UserService : IUserService
             return new ServerResponse { Message = UrlEncoder.Encode($"{email.EmailAddress}~{user.Id}"), IsSuccess = true };
         }
 
-        return new ServerResponse 
-        { 
+        return new ServerResponse
+        {
             Message = "Щось пішло не так... всі помилки в списку \"Errors\"!",
             Errors = identityResult.Errors.Select(e => e.Description),
             IsSuccess = false
@@ -125,8 +127,8 @@ public class UserService : IUserService
         Guid userId = Guid.Parse(userData[1]);
 
         Email? userEmail = await unitOfWork.Emails.CheckUserEmailExistence(email, userId);
-        
-        if(userEmail is null || userEmail.EmailConfirmed)
+
+        if (userEmail is null || userEmail.EmailConfirmed)
         {
             return new ServerResponse
             {
@@ -135,19 +137,35 @@ public class UserService : IUserService
             };
         }
 
+        string message = "Email підтверджено!";
+
+        User user = await unitOfWork._userManager.Users.AsNoTracking()
+                .SingleAsync(u => u.Id.Equals(userId));
+
+        if (!user.ActivatedAccount)
+        {
+            user.ActivatedAccount = true;
+            message = $"AccountId~{userEmail.UserId}";
+
+            unitOfWork._dbContext.Attach(user);
+            unitOfWork._dbContext.Entry(user).Property(u => u.ActivatedAccount).IsModified = true;
+
+            await unitOfWork._userManager.UpdateAsync(user);
+        }
+
         userEmail.EmailConfirmed = true;
 
         await unitOfWork.Emails.UpdateAsync(userEmail);
 
         await unitOfWork.SaveChangesAsync();
 
-        return new ServerResponse { Message = "Email підтверджено!", IsSuccess = true };
+        return new ServerResponse { Message = message, IsSuccess = true };
     }
 
     public async Task<int> GetCountOfUsers()
     {
         return await unitOfWork._userManager.Users.AsNoTracking()
-            .Where(u => u.Emails.Any(e => e.EmailConfirmed))
+            .Where(u => u.ActivatedAccount)
             .CountAsync();
     }
 
@@ -157,7 +175,7 @@ public class UserService : IUserService
             .Include(u => u.Emails)
             .SingleOrDefaultAsync(u => u.Login.Equals(dto.Login));
 
-        if(user is not null && await unitOfWork._userManager.CheckPasswordAsync(user, dto.Password))
+        if (user is not null && await unitOfWork._userManager.CheckPasswordAsync(user, dto.Password) && user.ActivatedAccount)
         {
             List<Claim> claims = await GenerateClaims(user);
             string accessToken = CreateAccessToken(claims, 2);
@@ -172,11 +190,40 @@ public class UserService : IUserService
 
         return new ServerResponse
         {
-            Message = (user is not null && !user.Emails.Any(e => e.EmailConfirmed)) ?
-            "Підтвердіть хоча б один Email для того щоб користуватися акаунтом!" :
+            Message = (user is not null && !user.ActivatedAccount) ?
+            "Ваш обліковий запис неактивований!" :
             "Помилка під час входу в акаунт!",
             IsSuccess = false
         };
+    }
+
+    public async Task<UserEmailsAndPhoneNumbersDTO> GetEmailsAndPhoneNumbersAsync(Guid userId)
+    {
+        UserEmailsAndPhoneNumbersDTO dto = new()
+        {
+            Emails = new List<string>(),
+            PhoneNumbers = new List<string>(),
+        };
+
+        User? user = await unitOfWork._userManager.Users.AsNoTracking()
+             .Include(u => u.Emails.Where(e => e.EmailConfirmed))
+             .Include(u => u.PhoneNumbers.Where(pn => pn.PhoneNumberConfirmed))
+             .SingleOrDefaultAsync(u => u.Id.Equals(userId));
+
+        if(user is not null)
+        {
+            foreach (Email email in user.Emails)
+            {
+                dto.Emails.Add(email.EmailAddress);
+            }
+
+            foreach(PhoneNumber phoneNumber in user.PhoneNumbers)
+            {
+                dto.PhoneNumbers.Add(phoneNumber.Number.Substring(1));
+            }
+        }
+
+        return dto;
     }
 
     private async Task<List<Claim>> GenerateClaims(User user)
@@ -190,7 +237,7 @@ public class UserService : IUserService
             new Claim("FirstName", user.FirstName),
             new Claim("LastName", user.LastName),
             new Claim("FatherName", user.FatherName ?? string.Empty),
-            new Claim("Birthday", (user.Birthday.HasValue) ? $"{user.Birthday.Value.Day}.{user.Birthday.Value.Month}.{user.Birthday.Value.Year}" 
+            new Claim("Birthday", (user.Birthday.HasValue) ? $"{user.Birthday.Value.Day}.{user.Birthday.Value.Month}.{user.Birthday.Value.Year}"
             : string.Empty),
             new Claim("ImageDirectory", user.ImageDirectory ?? string.Empty),
             new Claim("Gender", user.Sex.ToString()),
@@ -199,7 +246,7 @@ public class UserService : IUserService
 
         IList<string> roles = await unitOfWork._userManager.GetRolesAsync(user);
 
-        foreach(string role in roles)
+        foreach (string role in roles)
         {
             claims.Add(new Claim("Role", role));
         }

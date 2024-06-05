@@ -48,6 +48,9 @@ namespace GalaxyExpress.DAL.Data.Configurations
                 .HasColumnType("DECIMAL(18,2)")
                 .HasDefaultValue(0);
 
+            builder.Property(u => u.ActivatedAccount)
+                .HasDefaultValue(false);
+
             builder // one to many - Users to PhoneNumbers
                 .HasMany(u => u.PhoneNumbers)
                 .WithOne(pn => pn.User)

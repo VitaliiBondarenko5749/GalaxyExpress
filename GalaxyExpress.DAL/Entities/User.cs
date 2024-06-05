@@ -24,6 +24,7 @@ public class User : IdentityUser<Guid>, ICloneable
     public Gender Sex { get; set; }
     public string? ImageDirectory { get; set; }
     public decimal BonusAccount { get; set; } = default!;
+    public bool ActivatedAccount { get; set; } = false;
 
     public ICollection<PhoneNumber> PhoneNumbers { get; set; } = default!; // one to many
     public ICollection<Email> Emails { get; set; } = default!; // one to many

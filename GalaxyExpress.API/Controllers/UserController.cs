@@ -1,4 +1,5 @@
 ﻿using GalaxyExpress.BLL.DTOs.EmailDTOs;
+using GalaxyExpress.BLL.DTOs.PhoneNumberDTOs;
 using GalaxyExpress.BLL.DTOs.UserDTOs;
 using GalaxyExpress.BLL.Extensions;
 using GalaxyExpress.BLL.Services;
@@ -16,6 +17,7 @@ public class UserController : ControllerBase
     private readonly ILogger<UserController> logger;
     private readonly IUserService userService;
     private readonly IEmailSenderService emailSenderService;
+    private readonly IPhoneNumberService phoneNumberService;
 
     /// <summary>
     /// Constructor
@@ -23,11 +25,14 @@ public class UserController : ControllerBase
     /// <param name="logger"></param>
     /// <param name="userService"></param>
     /// <param name="emailSenderService"></param>
-    public UserController(ILogger<UserController> logger, IUserService userService, IEmailSenderService emailSenderService)
+    /// <param name="phoneNumberService"></param>
+    public UserController(ILogger<UserController> logger, IUserService userService, IEmailSenderService emailSenderService, 
+        IPhoneNumberService phoneNumberService)
     {
         this.logger = logger;
         this.userService = userService;
         this.emailSenderService = emailSenderService;
+        this.phoneNumberService = phoneNumberService;
     }
 
     /// <summary>
@@ -85,7 +90,53 @@ public class UserController : ControllerBase
     {
         try
         {
-            return await userService.ConfirmEmailAsync(token);
+            ServerResponse response = await userService.ConfirmEmailAsync(token);
+
+            if (response.Message is not null && response.Message.Contains("AccountId~"))
+            {
+                Guid userId = Guid.Parse(response.Message.Substring(response.Message.IndexOf('~') + 1));
+                UserEmailsAndPhoneNumbersDTO dto = await userService.GetEmailsAndPhoneNumbersAsync(userId);
+
+                if(dto.Emails is not null)
+                {
+                    string message = "<p>Вітаємо! Ви стали частиною платформи \'Galaxy Express\'!<br>" +
+                        $"Ваш AccountId (потрібен для відновлення облікового запису): <strong>{userId}</strong></p>";
+
+                    foreach(string email in dto.Emails)
+                    {
+                        SendEmailDTO sendEmailDTO = new()
+                        {
+                            SendTo = email,
+                            Subject = "Вітаємо на платформі \'Galaxy Express\'",
+                            Message = message,
+                            IsHtml = true
+                        };
+
+                        await emailSenderService.SendEmailAsync(sendEmailDTO);
+                    } 
+                }
+
+                if(dto.PhoneNumbers is not null)
+                {
+                    string message = "Вітаємо! Ви стали частиною платформи 'Galaxy Express'!\n" +
+                        $"Ваш AccountId (потрібен для відновлення облікового запису): {userId}";
+
+                    foreach(string phoneNumber in dto.PhoneNumbers)
+                    {
+                        SendPhoneNumberMessageDTO sendPhoneNumberMessageDTO = new()
+                        {
+                            SendTo = phoneNumber,
+                            Message = message
+                        };
+
+                        await phoneNumberService.SendMessageAsync(sendPhoneNumberMessageDTO);
+                    }
+                }
+
+                response.Message = "Email підтверджено!";
+            }
+
+            return response;
         }
         catch(Exception ex)
         {

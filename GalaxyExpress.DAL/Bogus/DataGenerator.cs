@@ -118,7 +118,8 @@ namespace GalaxyExpress.DAL.Bogus
                     f.Random.Int(0, 100) > 50 ? f.Date.Between(DateTime.Now.AddYears(-100), DateTime.Now.AddYears(-15)) : null)
                 .RuleFor(u => u.Sex, f => f.PickRandom<Gender>())
                 .RuleFor(u => u.BonusAccount, f => f.Random.Decimal(0.0m, 1000.0m))
-                .RuleFor(u => u.PasswordHash, f => new PasswordHasher<User>().HashPassword(null!, f.Internet.Password()));
+                .RuleFor(u => u.PasswordHash, f => new PasswordHasher<User>().HashPassword(null!, f.Internet.Password()))
+                .RuleFor(u => u.ActivatedAccount, f => f.Random.Bool());
         }
 
         private static Faker<PhoneNumber> GetPhoneNumberGenerator(Guid UserId)
