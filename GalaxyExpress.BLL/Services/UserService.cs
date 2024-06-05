@@ -22,6 +22,7 @@ public interface IUserService
     Task<int> GetCountOfUsers();
     Task<ServerResponse> LoginAsync(LoginUserDTO dto);
     Task<UserEmailsAndPhoneNumbersDTO> GetEmailsAndPhoneNumbersAsync(Guid userId);
+    Task<User?> GetDataAsync(Guid userId);
 }
 
 public class UserService : IUserService
@@ -224,6 +225,12 @@ public class UserService : IUserService
         }
 
         return dto;
+    }
+
+    public async Task<User?> GetDataAsync(Guid userId)
+    {
+        return await unitOfWork._userManager.Users.AsNoTracking()
+            .SingleOrDefaultAsync(u => u.Id.Equals(userId));
     }
 
     private async Task<List<Claim>> GenerateClaims(User user)

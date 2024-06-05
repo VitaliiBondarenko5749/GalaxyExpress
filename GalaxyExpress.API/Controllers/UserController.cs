@@ -3,6 +3,7 @@ using GalaxyExpress.BLL.DTOs.PhoneNumberDTOs;
 using GalaxyExpress.BLL.DTOs.UserDTOs;
 using GalaxyExpress.BLL.Extensions;
 using GalaxyExpress.BLL.Services;
+using GalaxyExpress.DAL.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GalaxyExpress.API.Controllers;
@@ -193,6 +194,76 @@ public class UserController : ControllerBase
         try
         {
             return await userService.LoginAsync(dto);
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
+
+    /// <summary>
+    /// Send Login value to activated phone numbers and Emails if you forgot it
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns>ServerResponse or StatusCode</returns>
+    [HttpGet("ForgotLogin/{userId}")]
+    public async Task<ActionResult<ServerResponse>> ForgotLoginAsync(Guid userId)
+    {
+        try
+        {
+            ServerResponse response = new();
+            User? user = await userService.GetDataAsync(userId);
+
+            if(user is null)
+            {
+                response.Message = $"Обліковий запис з AccountId: {userId} не знайдено";
+                response.IsSuccess = false;
+
+                return response;
+            }
+
+            UserEmailsAndPhoneNumbersDTO dto = await userService.GetEmailsAndPhoneNumbersAsync(userId);
+
+            if (dto.Emails is not null)
+            {
+                string message = $"<p>Вітаємо <i>{user.FirstName}</i>,<br>" +
+                    $"Ваш Login: <strong>{user.Login}</strong></p>";
+
+                foreach (string email in dto.Emails)
+                {
+                    SendEmailDTO sendEmailDTO = new()
+                    {
+                        SendTo = email,
+                        Subject = "Відновлення Login",
+                        Message = message,
+                        IsHtml = true
+                    };
+
+                    await emailSenderService.SendEmailAsync(sendEmailDTO);
+                }
+            }
+
+            if (dto.PhoneNumbers is not null)
+            {
+                string message = $"Вітаємо {user.FirstName},\nВаш Login: {user.Login}";
+
+                foreach (string phoneNumber in dto.PhoneNumbers)
+                {
+                    SendPhoneNumberMessageDTO sendPhoneNumberMessageDTO = new()
+                    {
+                        SendTo = phoneNumber,
+                        Message = message
+                    };
+
+                    await phoneNumberService.SendMessageAsync(sendPhoneNumberMessageDTO);
+                }
+            }
+
+            response.Message = "Значення login було відправленно на ваші активовані Email-адреси та номери телефонів!";
+            response.IsSuccess = true;
+
+            return response;
         }
         catch(Exception ex)
         {
