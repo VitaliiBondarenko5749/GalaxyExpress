@@ -112,4 +112,41 @@ public class UserController : ControllerBase
             return StatusCode(501, "INTERNAL SERVER ERROR");
         }
     }
+
+    /// <summary>
+    /// Returns count of users that any email is confirmed
+    /// </summary>
+    /// <returns>int or Status code 501</returns>
+    [HttpGet("GetCountOfUsers")]
+    public async Task<ActionResult<int>> GetCountOfUsersAsync()
+    {
+        try
+        {
+            return await userService.GetCountOfUsers();
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
+
+    /// <summary>
+    /// Login User
+    /// </summary>
+    /// <param name="dto"></param>
+    /// <returns>ServerResponse</returns>
+    [HttpPost("Login")]
+    public async Task<ActionResult<ServerResponse>> LoginAsync([FromForm] LoginUserDTO dto)
+    {
+        try
+        {
+            return await userService.LoginAsync(dto);
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
 }
