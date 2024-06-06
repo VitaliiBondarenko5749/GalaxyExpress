@@ -71,6 +71,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
         builder.Services.AddScoped<IPhoneNumberService, PhoneNumberService>();
+        builder.Services.AddScoped<IDropboxService, DropboxService>();
     }
     #endregion
 
