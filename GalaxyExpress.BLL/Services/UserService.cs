@@ -23,6 +23,8 @@ public interface IUserService
     Task<ServerResponse> LoginAsync(LoginUserDTO dto);
     Task<UserEmailsAndPhoneNumbersDTO> GetEmailsAndPhoneNumbersAsync(Guid userId);
     Task<User?> GetDataAsync(Guid userId);
+    Task<ServerResponse> ForgotPasswordAsync(ForgotPasswordDTO dto);
+    Task<ServerResponse> ResetPasswordAsync(ResetPasswordDTO dto);
 }
 
 public class UserService : IUserService
@@ -86,7 +88,6 @@ public class UserService : IUserService
             {
                 PhoneNumberId = Guid.NewGuid(),
                 Number = dto.PhoneNumber,
-                PhoneNumberConfirmed = true,
                 UserId = user.Id
             };
 
@@ -208,7 +209,7 @@ public class UserService : IUserService
 
         User? user = await unitOfWork._userManager.Users.AsNoTracking()
              .Include(u => u.Emails.Where(e => e.EmailConfirmed))
-             .Include(u => u.PhoneNumbers.Where(pn => pn.PhoneNumberConfirmed))
+             .Include(u => u.PhoneNumbers)
              .SingleOrDefaultAsync(u => u.Id.Equals(userId));
 
         if(user is not null)
@@ -231,6 +232,63 @@ public class UserService : IUserService
     {
         return await unitOfWork._userManager.Users.AsNoTracking()
             .SingleOrDefaultAsync(u => u.Id.Equals(userId));
+    }
+
+    public async Task<ServerResponse> ForgotPasswordAsync(ForgotPasswordDTO dto)
+    {
+        Email? email = await unitOfWork.Emails.CheckUserEmailExistence(dto.Email, dto.UserId);
+
+        if(email is null)
+        {
+            return new ServerResponse { Message = "Дані не знайдено!", IsSuccess = false };
+        }
+
+        User user = await unitOfWork._userManager.Users.AsNoTracking()
+            .SingleAsync(u => u.Id.Equals(dto.UserId));
+
+        string token = await unitOfWork._userManager.GeneratePasswordResetTokenAsync(user);
+        string encodedToken = UrlEncoder.Encode(token);
+        string callbackUrl = $"http://localhost:3000/reset-password?accountId={dto.UserId}&token={encodedToken}";
+
+        return new ServerResponse { Message = callbackUrl, IsSuccess = true };
+    }
+
+    public async Task<ServerResponse> ResetPasswordAsync(ResetPasswordDTO dto)
+    {
+        ResetPasswordValidator validator = new();
+        ValidationResult validationResult = await validator.ValidateAsync(dto);
+
+        if (!validationResult.IsValid)
+        {
+            string errors = validationResult.ToString("~");
+
+            return new ServerResponse
+            {
+                Message = "Щось пішло не так... всі помилки в списку \"Errors\"!",
+                IsSuccess = false,
+                Errors = errors.Split('~')
+            };
+        }
+
+        dto.Token = UrlEncoder.Decode(dto.Token);
+
+        User? user = await unitOfWork._userManager.Users.SingleOrDefaultAsync(u => u.Id.Equals(dto.UserId));
+
+        if (user is null)
+        {
+            return new ServerResponse { Message = "Користувача не знайдено!", IsSuccess = false };
+        }
+
+        IdentityResult identityResult = await unitOfWork._userManager.ResetPasswordAsync(user, dto.Token, dto.Password);
+
+        await unitOfWork.SaveChangesAsync();
+
+        return new ServerResponse
+        {
+            Message = (identityResult.Succeeded) ? "Пароль змінено!" : "Помилка під час зміни паролю!",
+            IsSuccess = (identityResult.Succeeded) ? true : false,
+            Errors = (identityResult.Succeeded) ? null : identityResult.Errors.Select(e => e.Description)
+        };
     }
 
     private async Task<List<Claim>> GenerateClaims(User user)

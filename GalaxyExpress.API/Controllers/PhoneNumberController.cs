@@ -1,4 +1,5 @@
 ﻿using GalaxyExpress.BLL.DTOs.PhoneNumberDTOs;
+using GalaxyExpress.BLL.Extensions;
 using GalaxyExpress.BLL.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,6 +41,27 @@ public class PhoneNumberController : ControllerBase
             return Ok();
         }
         catch(Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
+
+    /// <summary>
+    /// Check phone number existence
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="phoneNumber"></param>
+    /// <returns>ServerResponse or StatusCode 501</returns>
+    [HttpGet("CheckPhoneNumberExistence")]
+    public async Task<ActionResult<ServerResponse>> CheckPhoneNumberExistenceAsync([FromQuery] Guid userId, 
+        [FromQuery] string phoneNumber)
+    {
+        try
+        {
+            return await phoneNumberService.CheckPhoneNumberExistenceAsync(userId, phoneNumber);
+        }
+        catch (Exception ex)
         {
             logger.LogError(ex.Message);
             return StatusCode(501, "INTERNAL SERVER ERROR");

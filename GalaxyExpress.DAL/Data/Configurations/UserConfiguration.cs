@@ -54,15 +54,18 @@ namespace GalaxyExpress.DAL.Data.Configurations
             builder // one to many - Users to PhoneNumbers
                 .HasMany(u => u.PhoneNumbers)
                 .WithOne(pn => pn.User)
-                .HasForeignKey(pn => pn.UserId);
+                .HasForeignKey(pn => pn.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
             builder // one to many - Users to Emails
                 .HasMany(u => u.Emails)
                 .WithOne(e => e.User)
-                .HasForeignKey(e => e.UserId);
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
             builder // one to many - Users to PaymentCards
                 .HasMany(u => u.PaymentCards)
                 .WithOne(pc => pc.User)
-                .HasForeignKey(pc => pc.UserId);
+                .HasForeignKey(pc => pc.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Ignore attributes
 

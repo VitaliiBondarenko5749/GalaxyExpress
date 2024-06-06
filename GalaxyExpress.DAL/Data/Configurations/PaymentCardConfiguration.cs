@@ -18,11 +18,6 @@ namespace GalaxyExpress.DAL.Data.Configurations
             builder.HasKey(pc => pc.CardId);
 
             builder
-                .Property(pc => pc.DateCreated)
-                .HasDefaultValueSql("GETUTCDATE()");
-
-
-            builder
                 .Property(pc => pc.CardNumber)
                 .HasColumnType("NVARCHAR(16)")
                 .IsRequired();
@@ -35,11 +30,11 @@ namespace GalaxyExpress.DAL.Data.Configurations
                 .HasColumnType("NVARCHAR(3)")
                 .IsRequired();
 
-
             builder // many to one - Users to PaymentCards
                 .HasOne(pc => pc.User)
                 .WithMany(u => u.PaymentCards)
-                .HasForeignKey(pc => pc.UserId);
+                .HasForeignKey(pc => pc.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

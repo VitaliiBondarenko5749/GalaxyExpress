@@ -47,15 +47,11 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity, G
         var existingEntity = await GetByIdAsync(entity.Id);
 
         if (existingEntity == null)
+        {
             throw new Exception($"{typeof(TEntity).Name} with id: [{entity.Id}] was not found");
-        if (existingEntity.DateDeleted != null)
-            throw new Exception($"{typeof(TEntity).Name} with id: [{entity.Id}] already deleted");
-
-
+        }
+            
         dbContext.Entry(existingEntity).State = EntityState.Detached;
-
-        entity.DateUpdated = DateTime.UtcNow;
-        entity.DateCreated = existingEntity.DateCreated;
         dbContext.Entry(entity).State = EntityState.Modified;
     }
 
@@ -65,11 +61,8 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity, G
 
         if (entity == null)
             throw new Exception($"{typeof(TEntity).Name} with id: [{id}] was not found");
-        if (entity.DateDeleted != null)
-            throw new Exception($"{typeof(TEntity).Name} with id: [{id}] already deleted");
 
         dbContext.Entry(entity).State = EntityState.Detached;
-        entity.DateDeleted = DateTime.UtcNow;
         await UpdateAsync(entity);
     }
 }

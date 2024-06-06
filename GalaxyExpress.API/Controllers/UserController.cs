@@ -207,7 +207,7 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="userId"></param>
     /// <returns>ServerResponse or StatusCode</returns>
-    [HttpGet("ForgotLogin/{userId}")]
+    [HttpPost("ForgotLogin/{userId}")]
     public async Task<ActionResult<ServerResponse>> ForgotLoginAsync(Guid userId)
     {
         try
@@ -264,6 +264,63 @@ public class UserController : ControllerBase
             response.IsSuccess = true;
 
             return response;
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
+
+    /// <summary>
+    /// Forgot password method
+    /// </summary>
+    /// <param name="dto"></param>
+    /// <returns>ServerResponse or StatusCode 501</returns>
+    [HttpPost("ForgotPassword")]
+    public async Task<ActionResult<ServerResponse>> ForgotPasswordAsync([FromForm] ForgotPasswordDTO dto)
+    {
+        try
+        {
+            ServerResponse response = await userService.ForgotPasswordAsync(dto);
+
+            if (!response.IsSuccess)
+            {
+                return response;
+            }
+
+            SendEmailDTO sendEmailDto = new()
+            {
+                SendTo = dto.Email,
+                Subject = "Відновлення паролю",
+                Message = $"<p><i>Перейдіть за посиланням, для того щоб відновити пароль</i>: <a href={response.Message}>link</a></p>",
+                IsHtml = true
+            };
+
+            await emailSenderService.SendEmailAsync(sendEmailDto);
+
+            response.Message = "На вказаний Email було направлено лист з інструкцією відновлення вашого паролю.";
+
+            return response;
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
+
+    /// <summary>
+    /// Reset password method
+    /// </summary>
+    /// <param name="dto"></param>
+    /// <returns>ServerResponse or StatusCode 501</returns>
+    [HttpPost("ResetPassword")]
+    public async Task<ActionResult<ServerResponse>> ResetPasswordAsync([FromForm] ResetPasswordDTO dto)
+    {
+        try
+        {
+            return await userService.ResetPasswordAsync(dto);
         }
         catch(Exception ex)
         {

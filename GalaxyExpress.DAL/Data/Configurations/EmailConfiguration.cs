@@ -18,11 +18,6 @@ namespace GalaxyExpress.DAL.Data.Configurations
             builder.HasKey(e => e.EmailId);
 
             builder
-                .Property(e => e.DateCreated)
-                .HasDefaultValueSql("GETUTCDATE()");
-
-
-            builder
                 .Property(e => e.EmailAddress)
                 .HasColumnType("NVARCHAR(256)")
                 .IsRequired();
@@ -30,7 +25,8 @@ namespace GalaxyExpress.DAL.Data.Configurations
             builder // many to one - Users to Emails
                 .HasOne(e => e.User)
                 .WithMany(u => u.Emails)
-                .HasForeignKey(e => e.UserId);
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

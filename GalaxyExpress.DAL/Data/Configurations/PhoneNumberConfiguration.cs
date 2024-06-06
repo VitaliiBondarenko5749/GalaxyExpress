@@ -18,10 +18,6 @@ namespace GalaxyExpress.DAL.Data.Configurations
             builder.HasKey(pn => pn.PhoneNumberId);
 
             builder
-                .Property(pn => pn.DateCreated)
-                .HasDefaultValueSql("GETUTCDATE()");
-
-            builder
                 .Property(pn => pn.Number)
                 .HasColumnType("NVARCHAR(20)")
                 .IsRequired();
@@ -29,7 +25,8 @@ namespace GalaxyExpress.DAL.Data.Configurations
             builder // many to one - Users to PhoneNumbers
                 .HasOne(pn => pn.User)
                 .WithMany(u => u.PhoneNumbers)
-                .HasForeignKey(pn => pn.UserId);
+                .HasForeignKey(pn => pn.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
