@@ -24,14 +24,9 @@ public enum TypePackaging
     PlasticBag
 }
 
-public class Parcel : BaseEntity
+public class Parcel
 {
-    public Guid ParcelId
-    {
-        get => Id;
-        set => Id = value;
-    }
-
+    public Guid ParcelId { get; set; }
     public Guid SenderId { get; set; }
     public User Sender { get; set; } = default!;
 

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GalaxyExpress.DAL.Repositories;
 
-public interface IParcelMachineRepository : IGenericRepository<ParcelMachine, Guid>
+public interface IParcelMachineRepository : IGenericRepository<ParcelMachine>
 {
     Task<ParcelMachine?> CheckExistenceByParametersAsync(int parcelMachineNumber, string globalAddress, string localAddress);
 }

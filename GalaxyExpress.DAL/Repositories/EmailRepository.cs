@@ -4,9 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GalaxyExpress.DAL.Repositories;
 
-public interface IEmailRepository : IGenericRepository<Email, Guid>
+public interface IEmailRepository : IGenericRepository<Email>
 {
     Task<Email?> CheckUserEmailExistence(string email, Guid userId);
+    Task<Email[]> GetAllByUserIdAsync(Guid userId);
 }
 public class EmailRepository : GenericRepository<Email>, IEmailRepository
 {
@@ -14,26 +15,16 @@ public class EmailRepository : GenericRepository<Email>, IEmailRepository
     {
     }
 
-
-    public override async Task<IEnumerable<Email>> GetAllAsync()
-    {
-        return await entities
-            .AsNoTracking()
-            .Include(e => e.User)
-            .ToListAsync();
-    }
-
-    public override async Task<Email?> GetByIdAsync(Guid id)
-    {
-        return await entities
-            .AsNoTracking()
-            .Include(e => e.User)
-            .FirstOrDefaultAsync(e => e.EmailId == id);
-    }
-
     public async Task<Email?> CheckUserEmailExistence(string email, Guid userId)
     {
         return await dbContext.Emails.AsNoTracking()
             .SingleOrDefaultAsync(e => e.EmailAddress.Equals(email) && e.UserId.Equals(userId)); 
+    }
+
+    public async Task<Email[]> GetAllByUserIdAsync(Guid userId)
+    {
+        return await dbContext.Emails.AsNoTracking()
+            .Where(e => e.UserId.Equals(userId))
+            .ToArrayAsync() ?? Array.Empty<Email>();
     }
 }

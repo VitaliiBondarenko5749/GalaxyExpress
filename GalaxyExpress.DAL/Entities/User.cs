@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System.Runtime.Serialization;
 
 namespace GalaxyExpress.DAL.Entities;
 

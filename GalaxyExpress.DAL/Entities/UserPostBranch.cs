@@ -1,7 +1,8 @@
 ﻿namespace GalaxyExpress.DAL.Entities;
 
-public class UserPostBranch : BaseEntity
+public class UserPostBranch
 {
+    public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public User User { get; set; } = default!;
 

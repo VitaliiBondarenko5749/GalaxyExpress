@@ -1,7 +1,8 @@
 ﻿namespace GalaxyExpress.DAL.Entities;
 
-public class UserParcelMachine : BaseEntity
+public class UserParcelMachine
 {
+    public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public User User { get; set; } = default!;
 

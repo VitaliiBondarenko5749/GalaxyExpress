@@ -86,7 +86,7 @@ namespace GalaxyExpress.DAL.Bogus
         private static Faker<PostBranch> GetPostBranchGenerator()
         {
             return new Faker<PostBranch>()
-                .RuleFor(pb => pb.Id, _ => Guid.NewGuid())
+                .RuleFor(pb => pb.BranchId, _ => Guid.NewGuid())
                 .RuleFor(pb => pb.BranchNumber, f => f.Random.Int(1, 200))
                 .RuleFor(pm => pm.LocalAddress, f => $"{f.Address.StreetName()}, {f.Address.BuildingNumber()}")
                 .RuleFor(pm => pm.GlobalAddress, f => $"{f.Address.City()}, {f.Address.Country()}")
@@ -208,7 +208,7 @@ namespace GalaxyExpress.DAL.Bogus
                 Guid userId = faker.PickRandom(Users).Id,
                     parcelMachineId = faker.PickRandom(ParcelMachines).ParcelMachineId,
                     postBranchId = faker.PickRandom(PostBranches).BranchId,
-                    promoCodeId = faker.PickRandom(PromoCodes).Id;
+                    promoCodeId = faker.PickRandom(PromoCodes).PromoCodeId;
 
                 UserParcelMachines.Add(new UserParcelMachine { Id = Guid.NewGuid(), UserId = userId, ParcelMachineId = parcelMachineId });
                 UserPostBranches.Add(new UserPostBranch { Id = Guid.NewGuid(), UserId = userId, PostBranchId = postBranchId });

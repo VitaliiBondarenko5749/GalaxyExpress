@@ -157,7 +157,7 @@ public class UserService : IUserService
 
         userEmail.EmailConfirmed = true;
 
-        await unitOfWork.Emails.UpdateAsync(userEmail);
+        unitOfWork.Emails.UpdateAsync(userEmail);
 
         await unitOfWork.SaveChangesAsync();
 

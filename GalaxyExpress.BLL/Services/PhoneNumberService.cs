@@ -15,6 +15,7 @@ public interface IPhoneNumberService
     Task<ServerResponse> CheckPhoneNumberExistenceAsync(Guid userId, string phoneNumber);
     Task<ServerResponse> AddAsync(AddPhoneNumberDTO dto);
     Task<PhoneNumberInfoDTO[]> GetAllByUserIdAsync(Guid userId);
+    Task<ServerResponse> DeleteAsync(Guid userId, string phoneNumber);
 }
 
 public class PhoneNumberService : IPhoneNumberService
@@ -94,6 +95,29 @@ public class PhoneNumberService : IPhoneNumberService
 
         return MapperConfiguration.CreateMapper()
             .Map<PhoneNumberInfoDTO[]>(phoneNumbers);
+    }
+
+    public async Task<ServerResponse> DeleteAsync(Guid userId, string phoneNumber)
+    {
+        PhoneNumber? number = await unitOfWork.PhoneNumbers.CheckUserPhoneNumberExistenceAsync(userId, phoneNumber);
+
+        if (number is null)
+        {
+            return new ServerResponse { Message = "Немає такого номеру!", IsSuccess = false };
+        }
+
+        PhoneNumber[] numbers = await unitOfWork.PhoneNumbers.GetAllByUserIdAsync(userId);
+
+        if(numbers.Length <= 1)
+        {
+            return new ServerResponse { Message = "Користувач обов'язково повинен мати мінімум 1 номер!", IsSuccess = false };
+        }
+
+        await unitOfWork.PhoneNumbers.DeleteAsync(number.PhoneNumberId);
+
+        await unitOfWork.SaveChangesAsync();
+
+        return new ServerResponse { Message = "Дані успішно видалено!", IsSuccess = true };
     }
 
     private static MapperConfiguration MapperConfiguration

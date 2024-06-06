@@ -1,13 +1,8 @@
 ﻿namespace GalaxyExpress.DAL.Entities;
 
-public class PostBranch : BaseEntity
+public class PostBranch
 {
-    public Guid BranchId
-    {
-        get => Id;
-        set => Id = value;
-    }
-
+    public Guid BranchId { get; set; }
     public int BranchNumber { get; set; }
     public string LocalAddress { get; set; } = default!;
     public string GlobalAddress { get; set; } = default!;

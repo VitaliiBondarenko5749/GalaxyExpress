@@ -1,12 +1,8 @@
 ﻿namespace GalaxyExpress.DAL.Entities;
 
-public class PhoneNumber : BaseEntity
+public class PhoneNumber
 {
-    public Guid PhoneNumberId
-    {
-        get => Id;
-        set => Id = value;
-    }
+    public Guid PhoneNumberId { get; set; }
     public string Number { get; set; } = default!;
 
     public Guid UserId { get; set; } // FK

@@ -1,13 +1,8 @@
 ﻿namespace GalaxyExpress.DAL.Entities;
 
-public class ParcelMachine : BaseEntity
+public class ParcelMachine
 {
-    public Guid ParcelMachineId
-    {
-        get => Id; 
-        set => Id = value;   
-    }
-
+    public Guid ParcelMachineId { get; set; }
     public int ParcelMachineNumber { get; set; }
     public string LocalAddress { get; set; } = default!;
     public string GlobalAddress { get; set; } = default!;

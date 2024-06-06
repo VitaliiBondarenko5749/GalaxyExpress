@@ -59,7 +59,7 @@ public class UserController : ControllerBase
                     SendEmailDTO sendEmailDTO = new()
                     {
                         SendTo = dto.Email,
-                        Subject = "Confirm Email",
+                        Subject = "Підтвердження Email",
                         Message = $"<p><strong>Підтвердіть свій Email для користування акаунтом натиснувши на посилання:</strong></p> <a href='{callbackUrl}'>link</a>",
                         IsHtml = true
                     };

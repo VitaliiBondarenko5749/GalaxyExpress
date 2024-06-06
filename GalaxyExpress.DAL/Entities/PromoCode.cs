@@ -1,13 +1,8 @@
 ﻿namespace GalaxyExpress.DAL.Entities;
 
-public class PromoCode : BaseEntity
+public class PromoCode
 {
-    public Guid PromoCodeId
-    {
-        get => Id;
-        set => Id = value;
-    }
-
+    public Guid PromoCodeId { get; set; }
     public string Code { get; set; } = default!;
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }

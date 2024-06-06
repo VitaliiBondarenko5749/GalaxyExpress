@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GalaxyExpress.DAL.Repositories;
 
-public interface IPhoneNumberRepository : IGenericRepository<PhoneNumber, Guid>
+public interface IPhoneNumberRepository : IGenericRepository<PhoneNumber>
 {
     Task<PhoneNumber?> CheckUserPhoneNumberExistenceAsync(Guid userId, string phoneNumber);
     Task<PhoneNumber[]> GetAllByUserIdAsync(Guid userId);

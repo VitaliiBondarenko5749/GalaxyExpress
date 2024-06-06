@@ -105,4 +105,24 @@ public class PhoneNumberController : ControllerBase
             return StatusCode(501, "INTERNAL SERVER ERROR");
         }
     }
+
+    /// <summary>
+    /// Delete phone number from user
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="phoneNumber"></param>
+    /// <returns>ServerResponse or StatusCode 501</returns>
+    [HttpDelete]
+    public async Task<ActionResult<ServerResponse>> DeleteAsync([FromQuery] Guid userId, [FromQuery] string phoneNumber)
+    {
+        try
+        {
+            return await phoneNumberService.DeleteAsync(userId, phoneNumber);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
 }

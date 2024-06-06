@@ -4,65 +4,60 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GalaxyExpress.DAL.Repositories;
 
-public interface IGenericRepository<TEntity, TKey> where TEntity : class
+public interface IGenericRepository<T> where T : class
 {
-    Task<TKey> CreateAsync(TEntity entity);
-    Task<IEnumerable<TEntity>> GetAllAsync();
-    Task<TEntity?> GetByIdAsync(TKey key);
-    Task UpdateAsync(TEntity entity);
-    Task DeleteAsync(TKey key);
+    Task<List<T>> GetAllAsync();
+    Task<T> GetByIdAsync(Guid id);
+    Task<T> CreateAsync(T entity);
+    void UpdateAsync(T entity);
+    Task DeleteAsync(Guid id);
+    void DeleteRange(T[] entities);
 }
 
-public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity, Guid> where TEntity : BaseEntity
+public class GenericRepository<T> : IGenericRepository<T> where T : class
 {
     protected readonly GalaxyExpressDbContext dbContext;
-    protected readonly DbSet<TEntity> entities;
+    private readonly DbSet<T> table;
 
-    protected GenericRepository(
-        GalaxyExpressDbContext dbContext)
+    public GenericRepository(GalaxyExpressDbContext dbContext)
     {
         this.dbContext = dbContext;
-        this.entities = dbContext.Set<TEntity>();
+        table = dbContext.Set<T>();
     }
 
+    public async Task<T> CreateAsync(T entity)
+    {
+        await table.AddAsync(entity);
 
-    public virtual async Task<Guid> CreateAsync (TEntity entity)
-    {
-        await entities.AddAsync(entity);
-        return entity.Id;
-    }
-    
-    public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
-    {
-        return await entities.AsNoTracking().ToListAsync();
+        return entity;
     }
 
-    public virtual async Task<TEntity?> GetByIdAsync(Guid id)
+    public async Task<List<T>> GetAllAsync()
     {
-        return await entities.FindAsync(id);
+        return await table.ToListAsync();
     }
 
-    public virtual async Task UpdateAsync(TEntity entity)
+    public async Task<T> GetByIdAsync(Guid id)
     {
-        var existingEntity = await GetByIdAsync(entity.Id);
-
-        if (existingEntity == null)
-        {
-            throw new Exception($"{typeof(TEntity).Name} with id: [{entity.Id}] was not found");
-        }
-            
-        dbContext.Entry(existingEntity).State = EntityState.Detached;
-        dbContext.Entry(entity).State = EntityState.Modified;
+        return await table.FindAsync(id)
+            ?? throw new NullReferenceException("Entity type is nullable!");
     }
 
-    public virtual async Task DeleteAsync(Guid id)
+    public void UpdateAsync(T entity)
     {
-        var entity = await GetByIdAsync(id);
+        dbContext.Update(entity);
+    }
 
-        if (entity == null)
-            throw new Exception($"{typeof(TEntity).Name} with id: [{id}] was not found");
+    public async Task DeleteAsync(Guid id)
+    {
+        T? entity = await table.FindAsync(id)
+            ?? throw new NullReferenceException($"Could not find Entity by id: {id}");
 
-        dbContext.Entry(entity).State = EntityState.Detached;
-        await UpdateAsync(entity);
+        table.Remove(entity);
+    }
+
+    public void DeleteRange(T[] entities)
+    {
+        table.RemoveRange(entities);
     }
 }

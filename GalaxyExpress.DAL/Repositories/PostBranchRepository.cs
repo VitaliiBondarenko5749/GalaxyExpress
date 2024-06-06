@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GalaxyExpress.DAL.Repositories;
 
-public interface IPostBranchRepository : IGenericRepository<PostBranch, Guid>
+public interface IPostBranchRepository : IGenericRepository<PostBranch>
 {
     Task<PostBranch?> CheckExistenceByParametersAsync(int branchNumber, string globalAddress, string localAddress);
 }
