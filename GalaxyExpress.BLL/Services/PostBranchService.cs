@@ -33,7 +33,7 @@ public class PostBranchService : IPostBranchService
     {
         IEnumerable<PostBranch> postBranches = await unitOfWork.PostBranches.GetAllAsync();
 
-        if (!searchText.IsNullOrEmpty())
+        if (!string.IsNullOrEmpty(searchText))
         {
             postBranches = postBranches.Where(x => x.GlobalAddress.Contains(searchText) || x.LocalAddress.Contains(searchText));
         }

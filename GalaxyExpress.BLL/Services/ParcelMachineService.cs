@@ -33,7 +33,7 @@ public class ParcelMachineService : IParcelMachineService
     {
         IEnumerable<ParcelMachine>? parcelMachines = await unitOfWork.ParcelMachines.GetAllAsync();
 
-        if (!searchText.IsNullOrEmpty())
+        if (!string.IsNullOrEmpty(searchText))
         {
             parcelMachines = parcelMachines.Where(x => x.GlobalAddress.Contains(searchText) || x.LocalAddress.Contains(searchText));
         }

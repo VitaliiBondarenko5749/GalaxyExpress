@@ -67,4 +67,42 @@ public class PhoneNumberController : ControllerBase
             return StatusCode(501, "INTERNAL SERVER ERROR");
         }
     }
+
+    /// <summary>
+    /// Add new phone number to user
+    /// </summary>
+    /// <param name="dto"></param>
+    /// <returns>ServerResponse or StatusCode 501</returns>
+    [HttpPost("AddNumber")]
+    public async Task<ActionResult<ServerResponse>> AddAsync([FromForm] AddPhoneNumberDTO dto)
+    {
+        try
+        {
+            return await phoneNumberService.AddAsync(dto);
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
+
+    /// <summary>
+    /// Get phone numbers by userId
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns>PhoneNumberInfoDTO[] or StatusCode501</returns>
+    [HttpGet("{userId}")]
+    public async Task<ActionResult<PhoneNumberInfoDTO[]>> GetAllByUserIdAsync(Guid userId)
+    {
+        try
+        {
+            return await phoneNumberService.GetAllByUserIdAsync(userId);
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
 }

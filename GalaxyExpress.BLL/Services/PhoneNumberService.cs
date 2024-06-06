@@ -1,5 +1,8 @@
-﻿using GalaxyExpress.BLL.DTOs.PhoneNumberDTOs;
+﻿using AutoMapper;
+using FluentValidation.Results;
+using GalaxyExpress.BLL.DTOs.PhoneNumberDTOs;
 using GalaxyExpress.BLL.Extensions;
+using GalaxyExpress.BLL.Validators;
 using GalaxyExpress.DAL.Entities;
 using GalaxyExpress.DAL.Repositories;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +13,8 @@ public interface IPhoneNumberService
 {
     Task SendMessageAsync(SendPhoneNumberMessageDTO dto);
     Task<ServerResponse> CheckPhoneNumberExistenceAsync(Guid userId, string phoneNumber);
+    Task<ServerResponse> AddAsync(AddPhoneNumberDTO dto);
+    Task<PhoneNumberInfoDTO[]> GetAllByUserIdAsync(Guid userId);
 }
 
 public class PhoneNumberService : IPhoneNumberService
@@ -39,5 +44,63 @@ public class PhoneNumberService : IPhoneNumberService
             Message = (number is not null) ? "Номер присутній у користувача" : "Номер неприсутній у користувача!",
             IsSuccess = (number is not null) ? true : false
         };
+    }
+
+    public async Task<ServerResponse> AddAsync(AddPhoneNumberDTO dto)
+    {
+        AddPhoneNumberValidator validator = new();
+        ValidationResult validationResult = await validator.ValidateAsync(dto);
+
+        if (!validationResult.IsValid)
+        {
+            string errors = validationResult.ToString("~");
+
+            return new ServerResponse
+            {
+                Message = "Щось пішло не так... всі помилки в списку \"Errors\"!",
+                IsSuccess = false,
+                Errors = errors.Split('~')
+            };
+        }
+
+        PhoneNumber? phoneNumber = await unitOfWork.PhoneNumbers.CheckUserPhoneNumberExistenceAsync(dto.UserId, dto.PhoneNumber);
+
+        if (phoneNumber is not null)
+        {
+            return new ServerResponse { Message = "Номер телефону вже присутній у користувача!", IsSuccess = false };
+        }
+
+        phoneNumber = new()
+        {
+            PhoneNumberId = Guid.NewGuid(),
+            UserId = dto.UserId,
+            Number = dto.PhoneNumber
+        };
+
+        await unitOfWork.PhoneNumbers.CreateAsync(phoneNumber);
+
+        await unitOfWork.SaveChangesAsync();
+
+        return new ServerResponse
+        {
+            Message = "Номер додано!",
+            IsSuccess = true
+        };
+    }
+
+    public async Task<PhoneNumberInfoDTO[]> GetAllByUserIdAsync(Guid userId)
+    {
+        PhoneNumber[] phoneNumbers = await unitOfWork.PhoneNumbers.GetAllByUserIdAsync(userId);
+
+        return MapperConfiguration.CreateMapper()
+            .Map<PhoneNumberInfoDTO[]>(phoneNumbers);
+    }
+
+    private static MapperConfiguration MapperConfiguration
+    {
+        get => new(config =>
+        {
+            config.CreateMap<PhoneNumber, PhoneNumberInfoDTO>();
+        });
     }
 }
