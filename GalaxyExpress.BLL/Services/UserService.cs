@@ -5,9 +5,11 @@ using GalaxyExpress.BLL.Validators;
 using GalaxyExpress.DAL.Entities;
 using GalaxyExpress.DAL.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using NuGet.Protocol.Plugins;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -25,6 +27,7 @@ public interface IUserService
     Task<User?> GetDataAsync(Guid userId);
     Task<ServerResponse> ForgotPasswordAsync(ForgotPasswordDTO dto);
     Task<ServerResponse> ResetPasswordAsync(ResetPasswordDTO dto);
+    Task<ServerResponse> UpdateAsync(UpdateUserDTO dto);
 }
 
 public class UserService : IUserService
@@ -288,6 +291,62 @@ public class UserService : IUserService
             Message = (identityResult.Succeeded) ? "Пароль змінено!" : "Помилка під час зміни паролю!",
             IsSuccess = (identityResult.Succeeded) ? true : false,
             Errors = (identityResult.Succeeded) ? null : identityResult.Errors.Select(e => e.Description)
+        };
+    }
+
+    public async Task<ServerResponse> UpdateAsync(UpdateUserDTO dto)
+    {
+        UpdateUserValidator validator = new();
+        ValidationResult validationResult = await validator.ValidateAsync(dto);
+
+        if (!validationResult.IsValid)
+        {
+            string errors = validationResult.ToString("~");
+
+            return new ServerResponse
+            {
+                Message = "Щось пішло не так... всі помилки в списку \"Errors\"!",
+                IsSuccess = false,
+                Errors = errors.Split('~')
+            };
+        }
+
+        User? user = await unitOfWork._userManager.Users.SingleOrDefaultAsync(u => u.Id.Equals(dto.UserId));
+
+        if (user is null)
+        {
+            return new ServerResponse { Message = "Користувача не знайдено!", IsSuccess = false };
+        }
+
+        string existedLogin = await unitOfWork._userManager.Users.AsNoTracking()
+            .Where(u => u.Login.Equals(dto.Login))
+            .Select(u => u.Login)
+            .Take(1).SingleOrDefaultAsync() ?? string.Empty;
+
+        if(!string.IsNullOrEmpty(existedLogin) && !existedLogin.Equals(user.Login))
+        {
+            return new ServerResponse { Message = $"Логін \"{existedLogin}\" вже зайнятий іншим користувачем!", IsSuccess = false };
+        }
+
+        user.Login = dto.Login;
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.FatherName = dto.FatherName;
+        user.Birthday = dto.Birthday;
+        user.Sex = dto.Gender;
+
+        await unitOfWork._userManager.UpdateAsync(user);
+
+        await unitOfWork.SaveChangesAsync();
+
+        List<Claim> claims = await GenerateClaims(user);
+        string accessToken = CreateAccessToken(claims, 2);
+
+        return new ServerResponse
+        {
+            Message = "Дані успішно оновлено!",
+            IsSuccess = true,
+            AccessToken = accessToken
         };
     }
 

@@ -328,4 +328,30 @@ public class UserController : ControllerBase
             return StatusCode(501, "INTERNAL SERVER ERROR");
         }
     }
+
+    /// <summary>
+    /// Update user
+    /// </summary>
+    /// <param name="dto"></param>
+    /// <returns>ServerResponse or StatusCode 501</returns>
+    [HttpPut]
+    public async Task<ActionResult<ServerResponse>> UpdateAsync([FromForm] UpdateUserDTO dto)
+    {
+        try
+        {
+            if (dto.Photo is not null)
+            {
+                //TODO: Імплементувати зміну фотографії в dropbox
+            }
+
+            ServerResponse response = await userService.UpdateAsync(dto);
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
 }
