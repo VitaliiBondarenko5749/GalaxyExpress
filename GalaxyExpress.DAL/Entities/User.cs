@@ -21,7 +21,7 @@ public class User : IdentityUser<Guid>, ICloneable
     public string? FatherName { get; set; }
     public DateTime? Birthday { get; set; }
     public Gender Sex { get; set; }
-    public string? ImageDirectory { get; set; }
+    public string ImageDirectory { get; set; } = default!;
     public decimal BonusAccount { get; set; } = default!;
     public bool ActivatedAccount { get; set; } = false;
 

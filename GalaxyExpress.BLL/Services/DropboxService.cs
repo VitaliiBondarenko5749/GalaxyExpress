@@ -11,6 +11,7 @@ public interface IDropboxService
 {
     Task<ServerResponse> UploadFileAsync(string fileName, IFormFile file, string folder);
     Task<ServerResponse> DeleteFileAsync(string filePath);
+    Task<IFormFile> ChangeNameAsync(IFormFile file, string newName);
 }
 
 public class DropboxService : IDropboxService
@@ -63,5 +64,22 @@ public class DropboxService : IDropboxService
             Message = $"Файл за шляхом \"{filePath}\" було видалено!",
             IsSuccess = true
         };
+    }
+
+    public async Task<IFormFile> ChangeNameAsync(IFormFile file, string newName)
+    {
+        MemoryStream memoryStream = new();
+        await file.CopyToAsync(memoryStream);
+
+        byte[] fileBytes = memoryStream.ToArray();
+
+        IFormFile renamedFile = new FormFile(new MemoryStream(fileBytes), 0, fileBytes.Length,
+                                              file.Name, newName)
+        {
+            Headers = file.Headers,
+            ContentType = file.ContentType
+        };
+
+        return renamedFile;
     }
 }

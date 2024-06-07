@@ -28,6 +28,8 @@ public interface IUserService
     Task<ServerResponse> ForgotPasswordAsync(ForgotPasswordDTO dto);
     Task<ServerResponse> ResetPasswordAsync(ResetPasswordDTO dto);
     Task<ServerResponse> UpdateAsync(UpdateUserDTO dto);
+    Task UpdateImageDirectoryAsync(User user);
+    Task<ServerResponse> DeleteAsync(Guid userId);
 }
 
 public class UserService : IUserService
@@ -58,7 +60,6 @@ public class UserService : IUserService
             };
         }
 
-        // TODO: Change image directory path
         User user = new()
         {
             Id = Guid.NewGuid(),
@@ -69,7 +70,7 @@ public class UserService : IUserService
             FatherName = dto.FatherName,
             Birthday = null,
             Sex = Gender.NotSelected,
-            ImageDirectory = null,
+            ImageDirectory = "/UserIcons/Default-icon.png",
             BonusAccount = 20M,
             UserName = Guid.NewGuid().ToString(),
             ActivatedAccount = false
@@ -233,8 +234,7 @@ public class UserService : IUserService
 
     public async Task<User?> GetDataAsync(Guid userId)
     {
-        return await unitOfWork._userManager.Users.AsNoTracking()
-            .SingleOrDefaultAsync(u => u.Id.Equals(userId));
+        return await unitOfWork._userManager.Users.SingleOrDefaultAsync(u => u.Id.Equals(userId));
     }
 
     public async Task<ServerResponse> ForgotPasswordAsync(ForgotPasswordDTO dto)
@@ -348,6 +348,32 @@ public class UserService : IUserService
             IsSuccess = true,
             AccessToken = accessToken
         };
+    }
+
+    public async Task UpdateImageDirectoryAsync(User user)
+    {
+        await unitOfWork._userManager.UpdateAsync(user);
+
+        await unitOfWork.SaveChangesAsync();
+
+        await Task.Delay(1000);
+    }
+
+    public async Task<ServerResponse> DeleteAsync(Guid userId)
+    {
+        User? user = await unitOfWork._userManager.Users
+            .SingleOrDefaultAsync(u => u.Id.Equals(userId));
+
+        if(user is null)
+        {
+            return new ServerResponse { Message = "Користувача не знайдено!", IsSuccess = false };
+        }
+
+        await unitOfWork._userManager.DeleteAsync(user);
+
+        await unitOfWork.SaveChangesAsync();
+
+        return new ServerResponse { Message = user.ImageDirectory, IsSuccess = true };
     }
 
     private async Task<List<Claim>> GenerateClaims(User user)

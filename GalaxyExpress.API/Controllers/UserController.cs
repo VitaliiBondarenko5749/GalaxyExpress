@@ -19,6 +19,7 @@ public class UserController : ControllerBase
     private readonly IUserService userService;
     private readonly IEmailSenderService emailSenderService;
     private readonly IPhoneNumberService phoneNumberService;
+    private readonly IDropboxService dropboxService;
 
     /// <summary>
     /// Constructor
@@ -27,13 +28,15 @@ public class UserController : ControllerBase
     /// <param name="userService"></param>
     /// <param name="emailSenderService"></param>
     /// <param name="phoneNumberService"></param>
+    /// <param name="dropboxService"></param>
     public UserController(ILogger<UserController> logger, IUserService userService, IEmailSenderService emailSenderService, 
-        IPhoneNumberService phoneNumberService)
+        IPhoneNumberService phoneNumberService, IDropboxService dropboxService)
     {
         this.logger = logger;
         this.userService = userService;
         this.emailSenderService = emailSenderService;
         this.phoneNumberService = phoneNumberService;
+        this.dropboxService = dropboxService;
     }
 
     /// <summary>
@@ -341,7 +344,28 @@ public class UserController : ControllerBase
         {
             if (dto.Photo is not null)
             {
-                //TODO: Імплементувати зміну фотографії в dropbox
+                User? user = await userService.GetDataAsync(dto.UserId);
+
+                if(user is null)
+                {
+                    return new ServerResponse { Message = "Користувача не знайдено!", IsSuccess = false };
+                }
+
+                if (!user.ImageDirectory.Equals("/UserIcons/Default-icon.png"))
+                {
+                    await dropboxService.DeleteFileAsync(user.ImageDirectory);
+                }
+
+                dto.Photo = await dropboxService.ChangeNameAsync(dto.Photo, $"{user.Id}-{dto.Photo.FileName}");
+                string newImageDirectory = $"/UserIcons/{dto.Photo.FileName}";
+
+                ServerResponse uploadResponse = await dropboxService.UploadFileAsync(dto.Photo.FileName, dto.Photo, "UserIcons");
+
+                if (uploadResponse.IsSuccess) 
+                {
+                    user.ImageDirectory = newImageDirectory;
+                    await userService.UpdateImageDirectoryAsync(user);
+                }
             }
 
             ServerResponse response = await userService.UpdateAsync(dto);
@@ -349,6 +373,33 @@ public class UserController : ControllerBase
             return response;
         }
         catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
+
+    /// <summary>
+    /// Delete user from database
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    [HttpDelete("{userId}")]
+    public async Task<ActionResult<ServerResponse>> DeleteAsync(Guid userId)
+    {
+        try
+        {
+            ServerResponse response = await userService.DeleteAsync(userId);
+
+            if(response.IsSuccess && response.Message is not null && !response.Message.Equals("/UserIcons/Default-icon.png"))
+            {
+                await dropboxService.DeleteFileAsync(response.Message);
+                response.Message = "Користувача видалено!";
+            }
+
+            return response;
+        }
+        catch(Exception ex)
         {
             logger.LogError(ex.Message);
             return StatusCode(501, "INTERNAL SERVER ERROR");

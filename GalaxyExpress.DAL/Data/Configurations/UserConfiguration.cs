@@ -51,6 +51,9 @@ namespace GalaxyExpress.DAL.Data.Configurations
             builder.Property(u => u.ActivatedAccount)
                 .HasDefaultValue(false);
 
+            builder.Property(u => u.ImageDirectory)
+                .HasDefaultValue("/UserIcons/Default-icon.png");
+
             builder // one to many - Users to PhoneNumbers
                 .HasMany(u => u.PhoneNumbers)
                 .WithOne(pn => pn.User)
