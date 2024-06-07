@@ -405,4 +405,23 @@ public class UserController : ControllerBase
             return StatusCode(501, "INTERNAL SERVER ERROR");
         }
     }
+
+    /// <summary>
+    /// Change user password
+    /// </summary>
+    /// <param name="dto"></param>
+    /// <returns>ServerResponse or StatusCode 501</returns>
+    [HttpPut("ChangePassword")]
+    public async Task<ActionResult<ServerResponse>> ChangePasswordAsync([FromForm] ChangePasswordDTO dto)
+    {
+        try
+        {
+            return await userService.ChangePasswordAsync(dto);
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(501, "INTERNAL SERVER ERROR");
+        }
+    }
 }

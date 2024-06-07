@@ -30,6 +30,7 @@ public interface IUserService
     Task<ServerResponse> UpdateAsync(UpdateUserDTO dto);
     Task UpdateImageDirectoryAsync(User user);
     Task<ServerResponse> DeleteAsync(Guid userId);
+    Task<ServerResponse> ChangePasswordAsync(ChangePasswordDTO dto);
 }
 
 public class UserService : IUserService
@@ -357,6 +358,45 @@ public class UserService : IUserService
         await unitOfWork.SaveChangesAsync();
 
         await Task.Delay(1000);
+    }
+
+    public async Task<ServerResponse> ChangePasswordAsync(ChangePasswordDTO dto)
+    {
+        ChangePasswordValidator validator = new();
+        ValidationResult validationResult = await validator.ValidateAsync(dto);
+
+        if (!validationResult.IsValid)
+        {
+            string errors = validationResult.ToString("~");
+
+            return new ServerResponse
+            {
+                Message = "Щось пішло не так... всі помилки в списку \"Errors\"!",
+                IsSuccess = false,
+                Errors = errors.Split('~')
+            };
+        }
+
+        User? user = await unitOfWork._userManager.Users.SingleOrDefaultAsync(u => u.Id.Equals(dto.UserId));
+
+        if(user is null)
+        {
+            return new ServerResponse { Message = $"Користувач з accountId \"{dto.UserId}\" не існує!", IsSuccess = false };
+        }
+
+        IdentityResult identityResult = await unitOfWork._userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
+
+        if (identityResult.Succeeded)
+        {
+            return new ServerResponse { Message = "Пароль успішно змінено!", IsSuccess = true };
+        }
+
+        return new ServerResponse
+        {
+            Message = "Помилка при зміні паролю! Всі помилки в \"Errors\" списку!",
+            IsSuccess = false,
+            Errors = identityResult.Errors.Select(e => e.Description)
+        };
     }
 
     public async Task<ServerResponse> DeleteAsync(Guid userId)
