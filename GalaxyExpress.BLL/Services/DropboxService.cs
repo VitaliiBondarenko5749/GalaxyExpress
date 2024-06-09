@@ -3,7 +3,9 @@ using Dropbox.Api.Files;
 using GalaxyExpress.BLL.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using System.IO;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Net.Http.Headers;
 
 namespace GalaxyExpress.BLL.Services;
 
@@ -12,17 +14,22 @@ public interface IDropboxService
     Task<ServerResponse> UploadFileAsync(string fileName, IFormFile file, string folder);
     Task<ServerResponse> DeleteFileAsync(string filePath);
     Task<IFormFile> ChangeNameAsync(IFormFile file, string newName);
+    Task<string> GetTemporaryLinkAsync(string folder, string fileName);
 }
 
 public class DropboxService : IDropboxService
 {
     private readonly IConfiguration configuration;
     private readonly string accessToken;
+    private HttpClient httpClient;
 
-    public DropboxService(IConfiguration configuration)
+    public DropboxService(IConfiguration configuration, HttpClient httpClient)
     {
         this.configuration = configuration;
         accessToken = this.configuration["DropboxAPI:Token"];
+        this.httpClient = httpClient;
+        this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        this.httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     }
 
     public async Task<ServerResponse> UploadFileAsync(string fileName, IFormFile file, string folder)
@@ -81,5 +88,23 @@ public class DropboxService : IDropboxService
         };
 
         return renamedFile;
+    }
+
+    public async Task<string> GetTemporaryLinkAsync(string folder, string fileName)
+    {
+        string request = "https://api.dropboxapi.com/2/files/get_temporary_link";
+        var requestBody = new { path = $"/{folder}/{fileName}" };
+        StringContent content = new (JsonConvert.SerializeObject(requestBody), System.Text.Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await httpClient.PostAsync(request, content);
+
+        response.EnsureSuccessStatusCode();
+
+        string responseContent = await response.Content.ReadAsStringAsync();
+        JObject jsonResponse = JObject.Parse(responseContent);
+
+        Console.WriteLine(jsonResponse.ToString());
+
+        return jsonResponse["link"]?.ToString() ?? string.Empty;
     }
 }
